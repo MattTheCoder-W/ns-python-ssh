@@ -1,4 +1,4 @@
-from paramiko import SSHClient, transport
+from paramiko import SSHClient
 
 
 class Executor:
@@ -50,6 +50,46 @@ class Executor:
         if len(err):
             print("Errors", err)
         return out
+    
+    def create_file(self, filename: str) -> bool:
+        if type(filename) is not str:
+            raise TypeError("Filename should be string!")
+        if len(filename) == 0:
+            raise ValueError("Filename should not be empty!")
+        out, err = self.exec(f"touch {filename}")
+        if len(err):
+            print("Error while creating file:", err)
+            return False
+        return True
+
+    def write_to_file(self, filename: str, lines: list, overwrite: bool = False) -> bool:
+        if type(filename) is not str:
+            raise TypeError("Filename should be string!")
+        if len(filename) == 0:
+            raise ValueError("Filename should not be empty!")
+        if type(lines) is not list:
+            raise TypeError("Lines should be a list!")
+        if len(lines) == 0:
+            raise ValueError("Cannor write empty lines list")
+        mode = ">" if overwrite else ">>"
+        out, err = self.exec(f'echo "' + '\n'.join(lines) + f'" {mode} {filename}')
+        if len(err):
+            print("Error while writing to file:", err)
+            return False
+        return True
+    
+    def read_file(self, filename: str) -> list:
+        if type(filename) is not str:
+            raise TypeError("Filename should be string!")
+        if len(filename) == 0:
+            raise ValueError("Filename should not be empty!")
+        if not filename in [x.strip() for x in self.list_files()]:
+            raise FileNotFoundError(f"{filename} file doesn't exist!")
+        out, err = self.exec(f'cat "{filename}"')
+        if len(err):
+            print("Error while reading file:", err)
+            return []
+        return out
 
     def close(self):
         self.client.close()
@@ -58,11 +98,26 @@ class Executor:
 if __name__ == "__main__":
     airos = Executor()
 
-    # print(airos.exec_input("./test.sh", ['Mati', '18']))
+    print(airos.exec_input("./test.sh", ['Mati', '18']))
+    
     # airos.change_password("test")
+    
     for file in airos.list_files():
         print("File:", file.strip())
-    airos.client.close()
-    print(airos.transport.is_active())
+    
+    # airos.client.close()
+    
+    print("Status:", airos.transport.is_active())
+
+    airos.create_file("created-by-python.txt")
+
+    airos.write_to_file("created-by-python.txt", ['Hello', 'World!'])
+    
     for file in airos.list_files():
         print("File:", file.strip())
+
+    print(airos.read_file("created-by-python.txt"))
+
+    airos.write_to_file("created-by-python.txt", ['Not', 'Any More!'], overwrite=True)
+
+    print(airos.read_file("created-by-python.txt"))
