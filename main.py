@@ -20,9 +20,11 @@ class Executor:
     def active(self) -> bool:
         return self.transport.is_active()
 
-    def exec(self, cmd: str) -> list:
+    def exec(self, cmd: str, path: str = None) -> list:
         if not self.active:
             raise ConnectionAbortedError("Lost connection!")
+        if path:
+            cmd = f"cd {path}; {cmd}"
         stdin, stdout, stderr = self.client.exec_command(cmd)
         return [stdout.readlines(), stderr.readlines()]
 
@@ -90,9 +92,28 @@ class Executor:
             print("Error while reading file:", err)
             return []
         return out
+    
+    def get_location(self) -> str:
+        out, err = self.exec("pwd")
+        if len(err):
+            print("Error while getting location", err)
+            return None
+        return out[0].strip()
+
+    def change_directory(self, dirr: str) -> bool:
+        if type(dirr) is not str:
+            raise TypeError("Directory name should be string!")
+        out, err = self.exec(f"cd {dirr}")
+        if len(err):
+            print("Error while changing directory:", err)
+            return False
+        return True
 
     def close(self):
         self.client.close()
+
+    def __bool__(self) -> bool:
+        return self.active
 
 
 if __name__ == "__main__":
@@ -107,7 +128,7 @@ if __name__ == "__main__":
     
     # airos.client.close()
     
-    print("Status:", airos.transport.is_active())
+    print("Status:", bool(airos))
 
     airos.create_file("created-by-python.txt")
 
@@ -121,3 +142,7 @@ if __name__ == "__main__":
     airos.write_to_file("created-by-python.txt", ['Not', 'Any More!'], overwrite=True)
 
     print(airos.read_file("created-by-python.txt"))
+
+    print("pwd", airos.get_location())
+
+    print(airos.exec("pwd", path="testdir"))
