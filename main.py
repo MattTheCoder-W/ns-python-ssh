@@ -6,7 +6,11 @@ class Executor:
     _port = 22
     _uname = "ubnt"
     _passwd = "ubnt"
-    def __init__(self) -> None:
+    def __init__(self, addr: str, port: int, uname: str, passwd: str) -> None:
+        self._addr = addr
+        self._port = port
+        self._uname = uname
+        self._passwd = passwd
         self.client = SSHClient()
         self.client.load_system_host_keys()
         self.client.connect(self._addr, port=self._port, username=self._uname, password=self._passwd)
