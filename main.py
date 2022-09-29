@@ -120,33 +120,39 @@ class Executor:
         return self.active
 
 
-if __name__ == "__main__":
-    airos = Executor()
-
-    print(airos.exec_input("./test.sh", ['Mati', '18']))
+def manual_test(airos: Executor):
+    # print(airos.exec_input("./test.sh", ['Mati', '18']))
     
-    # airos.change_password("test")
-    
+    print("Lista plików", "="*25)
     for file in airos.list_files():
         print("File:", file.strip())
     
-    # airos.client.close()
-    
-    print("Status:", bool(airos))
+    print("Status", "="*25)
+    print(bool(airos))
 
-    airos.create_file("created-by-python.txt")
+    print("Tworzenie pliku: created-by-python.txt", "="*25)
+    print(airos.create_file("created-by-python.txt"))
 
-    airos.write_to_file("created-by-python.txt", ['Hello', 'World!'])
-    
-    for file in airos.list_files():
-        print("File:", file.strip())
+    print("Wpisywanie do pliku: created-by-python.txt", "="*25)
+    print(airos.write_to_file("created-by-python.txt", ['Hello', 'World!']))
 
+    print("Czytanie z pliku: created-by-python.txt", "="*25)
     print(airos.read_file("created-by-python.txt"))
 
-    airos.write_to_file("created-by-python.txt", ['Not', 'Any More!'], overwrite=True)
+    print("Nadpisywanie pliku: created-by-python.txt", "="*25)
+    print(airos.write_to_file("created-by-python.txt", ['Not', 'Any More!'], overwrite=True))
 
+    
+    print("Czytanie z pliku: created-by-python.txt", "="*25)
     print(airos.read_file("created-by-python.txt"))
 
-    print("pwd", airos.get_location())
+    print("Domyślna lokalizacja użytkownika", "="*25)
+    print("Pwd ->", airos.get_location())
 
+    print("Wykonywanie komend w innym katalogu", "="*25)
     print(airos.exec("pwd", path="testdir"))
+
+
+if __name__ == "__main__":
+    airos = Executor("192.168.1.20", 22, "ubnt", "ubnt")
+    manual_test(airos)
